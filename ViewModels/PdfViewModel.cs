@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using APST.Entities;
 using APST.Events;
 
 namespace APST.ViewModels;

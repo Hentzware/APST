@@ -3,7 +3,9 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:prism="http://prismlibrary.com/"
     xmlns:viewModels="clr-namespace:APST.ViewModels"
     d:Background="White"
     d:DataContext="{d:DesignInstance viewModels:SearchViewModel}"
@@ -40,7 +42,13 @@
             <TextBox
                 Width="300"
                 Margin="0,0,5,0"
-                Text="{Binding SearchText}" />
+                Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="KeyDown">
+                        <prism:InvokeCommandAction Command="{Binding KeyDownCommand}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </TextBox>
             <Button
                 Width="100"
                 Command="{Binding SearchCommand}"

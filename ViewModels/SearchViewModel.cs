@@ -3,9 +3,12 @@ using System.IO;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Forms;
+using System.Windows.Input;
+using APST.Entities;
 using APST.Events;
 using APST.Interfaces;
 using DialogResult = System.Windows.Forms.DialogResult;
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace APST.ViewModels;
 
@@ -33,6 +36,8 @@ public class SearchViewModel : BindableBase
     public AsyncDelegateCommand CancelCommand => new(OnCancelAsync);
 
     public AsyncDelegateCommand SearchCommand => new(OnSearchAsync);
+
+    public AsyncDelegateCommand<KeyEventArgs> KeyDownCommand => new(OnKeyDownAsync);
 
     public bool IsConfigEnabled
     {
@@ -99,7 +104,7 @@ public class SearchViewModel : BindableBase
             return new ObservableCollection<SearchResult>();
         }
 
-        var validResults = searchResults.Where(r => File.Exists(r.File)).ToList();
+        var validResults = searchResults.Where(r => r.NoResults || File.Exists(r.File)).ToList();
 
         SaveSearchResultsToCache(validResults);
 
@@ -116,6 +121,14 @@ public class SearchViewModel : BindableBase
         await _cts.CancelAsync();
     }
 
+    private async Task OnKeyDownAsync(KeyEventArgs arg)
+    {
+        if (arg.Key == Key.Enter && arg.IsDown && IsConfigEnabled)
+        {
+            await OnSearchAsync();
+        }
+    }
+
     private async Task OnSearchAsync()
     {
         SearchingVisibility = Visibility.Visible;
@@ -129,23 +142,29 @@ public class SearchViewModel : BindableBase
         var cachedFiles = cachedResults.Select(r => r.File).Distinct().ToList();
         var newFiles = files.Except(cachedFiles).ToList();
 
-        if (!newFiles.Any())
-        {
-            SearchResults = new ObservableCollection<SearchResult>(cachedResults);
-            SearchingVisibility = Visibility.Collapsed;
-            return;
-        }
-
-        var searchResults = new List<SearchResult>();
-        var searchTasks = newFiles.Select(file => _searchService.SearchTextInPdfAsync(file, searchTextLower, cancellationToken)).ToList();
-
         try
         {
+            if (!newFiles.Any())
+            {
+                SearchResults = new ObservableCollection<SearchResult>(cachedResults.Where(r => !r.NoResults));
+                return;
+            }
+
+            var searchResults = new List<SearchResult>();
+            var searchTasks = newFiles.Select(file => _searchService.SearchTextInPdfAsync(file, searchTextLower, cancellationToken)).ToList();
+
             var results = await Task.WhenAll(searchTasks);
 
             for (var i = 0; i < newFiles.Count; i++)
             {
-                searchResults.AddRange(results[i].Select(page => new SearchResult { File = newFiles[i], Page = page, SearchTerm = searchTextLower }));
+                if (results[i].Any())
+                {
+                    searchResults.AddRange(results[i].Select(page => new SearchResult { File = newFiles[i], Page = page, SearchTerm = searchTextLower }));
+                }
+                else
+                {
+                    searchResults.Add(new SearchResult { File = newFiles[i], SearchTerm = searchTextLower, NoResults = true });
+                }
             }
 
             foreach (var result in searchResults)
@@ -156,7 +175,7 @@ public class SearchViewModel : BindableBase
                 }
             }
 
-            SearchResults = new ObservableCollection<SearchResult>(existingResults.Where(r => r.SearchTerm.ToLower() == searchTextLower));
+            SearchResults = new ObservableCollection<SearchResult>(existingResults.Where(r => r.SearchTerm.ToLower() == searchTextLower && !r.NoResults));
             SaveSearchResultsToCache(existingResults);
         }
         catch (OperationCanceledException)

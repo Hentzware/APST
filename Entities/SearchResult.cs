@@ -1,4 +1,4 @@
-﻿namespace APST;
+﻿namespace APST.Entities;
 
 public class SearchResult
 {
@@ -7,4 +7,6 @@ public class SearchResult
     public string File { get; set; } = string.Empty;
 
     public string SearchTerm { get; set; } = string.Empty;
+
+    public bool NoResults { get; set; }
 }
