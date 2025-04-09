@@ -9,9 +9,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="apst.lic" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="apst.lic">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="itext7" Version="9.1.0" />
     <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
     <PackageReference Include="Prism.DryIoc" Version="9.0.537" />
+    <PackageReference Include="Syncfusion.Licensing" Version="28.2.11" />
+    <PackageReference Include="Syncfusion.PdfViewer.WPF" Version="28.2.11" />
+    <PackageReference Include="Syncfusion.Shared.WPF" Version="28.2.11" />
   </ItemGroup>
 
   <ItemGroup>

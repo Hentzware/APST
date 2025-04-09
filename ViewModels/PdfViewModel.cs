@@ -1,13 +1,14 @@
-﻿using System.Windows;
-using System.Windows.Controls;
+﻿using System.IO;
+using System.Windows;
 using APST.Entities;
 using APST.Events;
+using Syncfusion.Windows.PdfViewer;
 
 namespace APST.ViewModels;
 
 public class PdfViewModel : BindableBase
 {
-    private WebBrowser? _webBrowser;
+    private PdfViewerControl? _pdfViewerControl;
 
     public PdfViewModel(IEventAggregator eventAggregator)
     {
@@ -18,26 +19,33 @@ public class PdfViewModel : BindableBase
 
     private void OnBrowserLoaded(RoutedEventArgs args)
     {
-        if (args.Source is WebBrowser webBrowser)
+        if (args.Source is PdfViewerControl pdfViewerControl)
         {
-            _webBrowser = webBrowser;
+            _pdfViewerControl = pdfViewerControl;
         }
     }
 
-    private async void OnNavigateCommand(SearchResult searchResult)
+    private void OnNavigateCommand(SearchResult searchResult)
     {
-        if (_webBrowser != null)
+        try
         {
-            var fileUri = new Uri(searchResult.File, UriKind.Absolute);
-            var pageUri = new Uri($"{fileUri.AbsoluteUri}#page={searchResult.Page}");
+            if (!File.Exists(searchResult.File))
+            {
+                MessageBox.Show($"PDF file not found: {searchResult.File}");
+                return;
+            }
 
-            // Navigate to an empty page to force navigation
-            _webBrowser.Navigate("about:blank");
+            if (_pdfViewerControl == null)
+            {
+                return;
+            }
 
-            // Delay to ensure the WebBrowser has time to navigate to the blank page
-            await Task.Delay(100);
-
-            _webBrowser.Navigate(pageUri);
+            _pdfViewerControl.Load(searchResult.File);
+            _pdfViewerControl.GotoPage(searchResult.Page);
+        }
+        catch (Exception e)
+        {
+            MessageBox.Show($"Error loading PDF: {e.Message}");
         }
     }
 }

@@ -4,21 +4,21 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-    xmlns:local="clr-namespace:APST.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:prism="http://prismlibrary.com/"
     xmlns:viewModels="clr-namespace:APST.ViewModels"
+    xmlns:pdfViewer="clr-namespace:Syncfusion.Windows.PdfViewer;assembly=Syncfusion.PdfViewer.WPF"
     d:DataContext="{d:DesignInstance viewModels:PdfViewModel}"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
     <Grid Panel.ZIndex="900">
-        <WebBrowser>
+        <pdfViewer:PdfViewerControl>
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="Loaded">
                     <prism:InvokeCommandAction Command="{Binding BrowserLoadedCommand}" />
                 </i:EventTrigger>
             </i:Interaction.Triggers>
-        </WebBrowser>
+        </pdfViewer:PdfViewerControl>
     </Grid>
 </UserControl>
